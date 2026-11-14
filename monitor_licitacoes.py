@@ -20,6 +20,7 @@ Comandos:
   python monitor_licitacoes.py --abrir          roda e abre o dashboard
   python monitor_licitacoes.py --completa       força varredura completa
   python monitor_licitacoes.py --so-dashboard   só refaz o dashboard com o que já tem
+  python monitor_licitacoes.py --servir         sobe o dashboard em http://localhost:8000
   python monitor_licitacoes.py --descobrir-chat-id   configura o Telegram
   python monitor_licitacoes.py --testar-telegram     manda mensagem de teste
 """
@@ -453,6 +454,19 @@ def main():
             print("Mensagem enviada!" if ok else "Telegram não configurado no config.json.")
         except Exception as e:
             print(f"Falhou: {e}")
+        return
+
+    if "--servir" in args:
+        import servidor
+        porta = servidor.PORTA_PADRAO
+        if "--porta" in sys.argv:
+            i = sys.argv.index("--porta")
+            porta = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
+        try:
+            servidor.servir(cfg, porta=porta, abrir="--sem-abrir" not in args)
+        except ValueError as e:
+            log(str(e))
+            sys.exit(1)
         return
 
     if "--so-dashboard" in args:
