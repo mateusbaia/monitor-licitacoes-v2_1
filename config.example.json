@@ -1,0 +1,49 @@
+{
+  "_ajuda": "Edite à vontade. Palavras com ou sem acento funcionam igual. Deixe 'cidades' vazio [] para pegar o estado todo.",
+  "palavras_chave": [
+    "manutencao predial",
+    "limpeza",
+    "conservacao",
+    "material de escritorio",
+    "material de expediente",
+    "servicos graficos",
+    "impressao",
+    "marketing",
+    "redes sociais",
+    "treinamento",
+    "capacitacao",
+    "consultoria",
+    "eventos",
+    "buffet",
+    "coffee break",
+    "informatica",
+    "suprimentos de informatica"
+  ],
+  "palavras_excluir": [
+    "obra de engenharia",
+    "pavimentacao",
+    "medicamento"
+  ],
+  "estados": [
+    "ES"
+  ],
+  "cidades": [],
+  "modalidades": [
+    8,
+    6
+  ],
+  "_modalidades_codigos": "8=Dispensa (principal), 6=Pregão eletrônico. Outras: 4=Concorrência eletrônica, 12=Credenciamento, 7=Pregão presencial. Cada modalidade a mais = mais requisições.",
+  "valor_minimo": 0,
+  "valor_maximo": 300000,
+  "_valores": "0 = sem limite. Obs.: o PNCP não filtra por valor, então isso limpa a lista mas não reduz requisições.",
+  "dias_a_frente": 60,
+  "varredura_completa_a_cada_dias": 7,
+  "_varredura": "Nas outras execuções só busca o que foi publicado desde a última vez (bem mais rápido).",
+  "pausa_entre_requisicoes": 1.0,
+  "tentativas": 6,
+  "max_paginas_por_busca": 200,
+  "telegram": {
+    "bot_token": "",
+    "chat_id": ""
+  }
+}

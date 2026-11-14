@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard de Licitações</title>
+<style>
+  :root{--azul:#0f3d6e;--azul2:#1a5fb4;--fundo:#f3f5f9;--card:#fff;--txt:#1d2433;--sub:#667085;
+        --verde:#1e9e5a;--verm:#d0362c;--lar:#e08a00;--borda:#e4e8f0}
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:var(--fundo);color:var(--txt)}
+  header{background:linear-gradient(120deg,#0f3d6e,#1a5fb4);color:#fff;padding:20px 28px}
+  header h1{margin:0;font-size:22px} header p{margin:6px 0 0;opacity:.85;font-size:13px}
+  main{padding:18px 28px 40px;max-width:1400px;margin:auto}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .kpi{background:var(--card);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px #0001;border:1px solid var(--borda)}
+  .kpi b{display:block;font-size:26px;color:var(--azul)} .kpi span{font-size:13px;color:var(--sub)}
+  .kpi.alerta b{color:var(--verm)} .kpi.novo b{color:var(--verde)}
+  .graficos{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:14px}
+  .painel{background:var(--card);border-radius:10px;padding:14px 16px;border:1px solid var(--borda)}
+  .painel h3{margin:0 0 10px;font-size:14px;color:var(--sub);font-weight:600}
+  .barra{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px;cursor:pointer}
+  .barra .nome{width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barra .trilho{flex:1;background:#eef2f8;border-radius:4px;height:14px}
+  .barra .cheio{background:var(--azul2);height:14px;border-radius:4px}
+  .barra .n{width:34px;text-align:right;color:var(--sub)}
+  .barra:hover .cheio{background:var(--azul)}
+  .filtros{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px;align-items:center}
+  .filtros input[type=text],.filtros select,.filtros input[type=number]{padding:8px 10px;border:1px solid #ccd3df;border-radius:8px;font-size:14px;background:#fff}
+  .filtros input[type=text]{flex:1;min-width:220px}
+  .abas{display:flex;gap:6px;margin-bottom:10px}
+  .aba{padding:7px 14px;border-radius:20px;border:1px solid #ccd3df;background:#fff;cursor:pointer;font-size:13px}
+  .aba.ativa{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .lista{display:grid;gap:10px}
+  .item{background:var(--card);border:1px solid var(--borda);border-left:5px solid #c9d3e3;border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:10px}
+  .item.urgente{border-left-color:var(--verm)} .item.breve{border-left-color:var(--lar)}
+  .item.novo{background:#f2fbf5}
+  .item .obj{font-weight:600;margin:4px 0 6px;line-height:1.35}
+  .meta{font-size:13px;color:var(--sub);display:flex;flex-wrap:wrap;gap:4px 14px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:4px}
+  .tag.novo{background:var(--verde);color:#fff} .tag.mod{background:#e7eefb;color:var(--azul)}
+  .tag.pal{background:#f1f3f6;color:#555;font-weight:500}
+  .lado{text-align:right;min-width:170px}
+  .valor{font-size:18px;font-weight:700} .prazo{font-size:13px;margin-top:4px}
+  .prazo.urgente{color:var(--verm);font-weight:700} .prazo.breve{color:var(--lar);font-weight:600}
+  .acoes{margin-top:8px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+  .acoes a,.acoes button{font-size:12px;padding:5px 9px;border-radius:6px;border:1px solid #ccd3df;background:#fff;color:var(--azul2);text-decoration:none;cursor:pointer}
+  .acoes button.on{background:#fff4cc;border-color:#e6c200}
+  .vazio{padding:40px;text-align:center;color:var(--sub);background:#fff;border-radius:10px;border:1px dashed #ccd3df}
+  footer{color:var(--sub);font-size:12px;margin-top:24px;text-align:center}
+  @media(max-width:700px){.item{grid-template-columns:1fr}.lado{text-align:left}.acoes{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Dashboard de Licitações</h1>
+  <p id="sub"></p>
+</header>
+<main>
+  <section class="kpis" id="kpis"></section>
+  <section class="graficos">
+    <div class="painel"><h3>Por cidade (clique para filtrar)</h3><div id="gCidade"></div></div>
+    <div class="painel"><h3>Por palavra-chave</h3><div id="gPalavra"></div></div>
+    <div class="painel"><h3>Por faixa de valor</h3><div id="gValor"></div></div>
+  </section>
+
+  <div class="filtros">
+    <input type="text" id="q" placeholder="🔎 Buscar no objeto, órgão, cidade...">
+    <select id="fCidade"><option value="">Todas as cidades</option></select>
+    <select id="fMod"><option value="">Todas as modalidades</option></select>
+    <select id="fPrazo">
+      <option value="">Qualquer prazo</option><option value="3">Encerra em até 3 dias</option>
+      <option value="7">Até 7 dias</option><option value="15">Até 15 dias</option>
+    </select>
+    <input type="number" id="fValor" placeholder="Valor máx. (R$)" style="width:150px">
+    <select id="fOrdem">
+      <option value="enc">Ordenar: prazo mais próximo</option>
+      <option value="pub">Ordenar: publicadas recentemente</option>
+      <option value="valor">Ordenar: maior valor</option>
+      <option value="valorMenor">Ordenar: menor valor</option>
+    </select>
+    <label style="font-size:14px"><input type="checkbox" id="fNovas"> só novas</label>
+  </div>
+  <div class="abas">
+    <button class="aba ativa" data-aba="todas">Todas</button>
+    <button class="aba" data-aba="fav">⭐ Interessantes</button>
+    <button class="aba" data-aba="desc">Descartadas</button>
+  </div>
+  <div id="contagem" style="font-size:13px;color:var(--sub);margin-bottom:8px"></div>
+  <section class="lista" id="lista"></section>
+  <footer id="rodape"></footer>
+</main>
+
+<script>
+const D = /*__DADOS__*/null || {itens:[],atualizado:"-",palavras:[],estados:[]};
+const $ = s => document.querySelector(s);
+const norm = s => (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const brl = v => v ? v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}) : "Não informado";
+const dias = iso => { const d = new Date(iso); return isNaN(d) ? 999 : (d - new Date())/864e5; };
+const dataBR = iso => { const d = new Date(iso); return isNaN(d) ? "-" : d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}); };
+const esc = s => String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// marcações (interessante / descartada) ficam salvas só neste navegador
+let marcas = {};
+try { marcas = JSON.parse(localStorage.getItem("licit_marcas")||"{}"); } catch(e) {}
+const salvaMarcas = () => { try { localStorage.setItem("licit_marcas", JSON.stringify(marcas)); } catch(e) {} };
+let aba = "todas";
+
+const itens = D.itens.filter(o => dias(o.encerramento) > 0);
+
+function kpis(){
+  const total = itens.length, novas = itens.filter(o=>o.novo).length;
+  const urg = itens.filter(o=>dias(o.encerramento)<3).length;
+  const soma = itens.reduce((s,o)=>s+(o.valor||0),0);
+  const disp = itens.filter(o=>norm(o.modalidade).includes("dispensa")).length;
+  $("#kpis").innerHTML = `
+    <div class="kpi"><b>${total}</b><span>oportunidades abertas</span></div>
+    <div class="kpi novo"><b>${novas}</b><span>novas nesta atualização</span></div>
+    <div class="kpi alerta"><b>${urg}</b><span>encerram em menos de 3 dias</span></div>
+    <div class="kpi"><b>${disp}</b><span>dispensas (disputa mais rápida)</span></div>
+    <div class="kpi"><b style="font-size:20px">${brl(soma)}</b><span>somando os valores estimados</span></div>`;
+}
+
+function barras(el, pares, aoClicar){
+  const max = Math.max(1, ...pares.map(p=>p[1]));
+  $(el).innerHTML = pares.length ? pares.map(([nome,n]) => `
+    <div class="barra" data-v="${esc(nome)}"><span class="nome" title="${esc(nome)}">${esc(nome)}</span>
+    <span class="trilho"><span class="cheio" style="display:block;width:${(n/max*100).toFixed(1)}%"></span></span>
+    <span class="n">${n}</span></div>`).join("") : '<div style="color:#999;font-size:13px">sem dados</div>';
+  if (aoClicar) $(el).querySelectorAll(".barra").forEach(b => b.onclick = () => aoClicar(b.dataset.v));
+}
+
+function conta(fn){ const m = {}; itens.forEach(o => fn(o).forEach(k => { if(k) m[k]=(m[k]||0)+1; })); return Object.entries(m).sort((a,b)=>b[1]-a[1]); }
+
+function graficos(){
+  barras("#gCidade", conta(o=>[o.cidade]).slice(0,10), v => { $("#fCidade").value = v; render(); });
+  barras("#gPalavra", conta(o=>(o.palavras||"").split(",").map(s=>s.trim())).slice(0,10), v => { $("#q").value = v; render(); });
+  const faixas = [["Até R$ 10 mil",1e4],["R$ 10–50 mil",5e4],["R$ 50–100 mil",1e5],["R$ 100–300 mil",3e5],["Acima de R$ 300 mil",Infinity]];
+  const fx = faixas.map(([n,lim],i) => [n, itens.filter(o => o.valor && o.valor <= lim && o.valor > (i?faixas[i-1][1]:0)).length]);
+  fx.push(["Não informado", itens.filter(o=>!o.valor).length]);
+  barras("#gValor", fx.filter(f=>f[1]>0));
+}
+
+function opcoes(){
+  const add = (sel, vals) => vals.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; $(sel).appendChild(o); });
+  add("#fCidade", [...new Set(itens.map(o=>o.cidade).filter(Boolean))].sort());
+  add("#fMod", [...new Set(itens.map(o=>o.modalidade).filter(Boolean))].sort());
+}
+
+function render(){
+  const q = norm($("#q").value), cid = $("#fCidade").value, mod = $("#fMod").value;
+  const prazo = +$("#fPrazo").value || 0, vmax = +$("#fValor").value || 0, sn = $("#fNovas").checked;
+  let l = itens.filter(o => {
+    const m = marcas[o.id];
+    if (aba === "fav" && m !== "fav") return false;
+    if (aba === "desc" && m !== "desc") return false;
+    if (aba === "todas" && m === "desc") return false;
+    if (q && !norm([o.objeto,o.orgao,o.cidade,o.palavras,o.modalidade].join(" ")).includes(q)) return false;
+    if (cid && o.cidade !== cid) return false;
+    if (mod && o.modalidade !== mod) return false;
+    if (prazo && dias(o.encerramento) > prazo) return false;
+    if (vmax && o.valor && o.valor > vmax) return false;
+    if (sn && !o.novo) return false;
+    return true;
+  });
+  const ord = $("#fOrdem").value;
+  l.sort((a,b) => ord==="valor" ? (b.valor||0)-(a.valor||0)
+              : ord==="valorMenor" ? (a.valor||9e15)-(b.valor||9e15)
+              : ord==="pub" ? String(b.publicacao).localeCompare(String(a.publicacao))
+              : String(a.encerramento).localeCompare(String(b.encerramento)));
+  $("#contagem").textContent = `${l.length} oportunidade(s) mostrando`;
+  $("#lista").innerHTML = l.length ? l.map(o => {
+    const d = dias(o.encerramento), cls = d<3 ? "urgente" : d<7 ? "breve" : "";
+    const pal = (o.palavras||"").split(",").filter(s=>s.trim()).map(p=>`<span class="tag pal">${esc(p.trim())}</span>`).join("");
+    return `<article class="item ${cls} ${o.novo?"novo":""}">
+      <div>
+        ${o.novo?'<span class="tag novo">NOVA</span>':""}<span class="tag mod">${esc(o.modalidade)}</span>
+        <div class="obj">${esc(o.objeto.slice(0,500))}</div>
+        <div class="meta"><span>🏛️ ${esc(o.orgao)}</span><span>📍 ${esc(o.cidade)}/${esc(o.uf)}</span>
+          <span>📅 publicada ${dataBR(o.publicacao)}</span></div>
+        <div style="margin-top:6px">${pal}</div>
+      </div>
+      <div class="lado">
+        <div class="valor">${brl(o.valor)}</div>
+        <div class="prazo ${cls}">⏰ encerra ${dataBR(o.encerramento)}<br>${d<1 ? "em menos de 24h!" : "em "+Math.floor(d)+" dia(s)"}</div>
+        <div class="acoes">
+          ${o.link_pncp?`<a href="${esc(o.link_pncp)}" target="_blank">Edital</a>`:""}
+          ${o.link_sistema?`<a href="${esc(o.link_sistema)}" target="_blank">Disputa</a>`:""}
+          <button data-id="${esc(o.id)}" data-m="fav" class="${marcas[o.id]==="fav"?"on":""}">⭐</button>
+          <button data-id="${esc(o.id)}" data-m="desc" title="${marcas[o.id]==="desc"?"Restaurar":"Descartar"}">${marcas[o.id]==="desc"?"↩":"✕"}</button>
+        </div>
+      </div></article>`;
+  }).join("") : '<div class="vazio">Nada por aqui com esses filtros.<br>Tente limpar os filtros ou ampliar as palavras-chave no config.json.</div>';
+  document.querySelectorAll(".acoes button").forEach(b => b.onclick = () => {
+    const id = b.dataset.id, m = b.dataset.m;
+    marcas[id] = marcas[id] === m ? undefined : m; if (!marcas[id]) delete marcas[id];
+    salvaMarcas(); render();
+  });
+}
+
+$("#sub").textContent = `Atualizado em ${D.atualizado} · fonte: PNCP · estados: ${(D.estados||[]).join(", ")||"Brasil"}`
+  + (D.valor_maximo ? ` · até ${brl(D.valor_maximo)}` : "");
+$("#rodape").textContent = `Palavras monitoradas: ${(D.palavras||[]).join(", ")} · última busca: ${D.modo||"-"} (${D.requisicoes||0} requisições)`;
+["#q","#fCidade","#fMod","#fPrazo","#fValor","#fOrdem","#fNovas"].forEach(s => { $(s).oninput = render; $(s).onchange = render; });
+document.querySelectorAll(".aba").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".aba").forEach(x=>x.classList.remove("ativa")); b.classList.add("ativa"); aba = b.dataset.aba; render();
+});
+kpis(); graficos(); opcoes(); render();
+</script>
+</body>
+</html>

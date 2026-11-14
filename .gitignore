@@ -1,0 +1,10 @@
+banco_oportunidades.json
+estado_execucao.json
+dashboard.html
+oportunidades.csv
+*.log
+__pycache__/
+*.tmp
+config.json
+.scratch/
+tests/.scratch/

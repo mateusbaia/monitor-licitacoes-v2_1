@@ -1,0 +1,53 @@
+MONITOR DE LICITAÇÕES v2 — Espírito Santo, dispensa em primeiro
+=================================================================
+
+O QUE MUDOU NA v2
+  - Configurado para ES, valor até R$ 300 mil, Dispensa + Pregão eletrônico.
+  - Muito menos requisições: só a 1ª execução (e uma vez por semana) faz a
+    varredura completa. As outras buscam apenas o que foi PUBLICADO desde a
+    última vez, normalmente poucas páginas.
+  - Trata o erro 429 (limite do PNCP): espera o tempo pedido e diminui o ritmo.
+  - Salva o progresso a cada etapa: se for interrompido, não perde nada.
+  - dashboard.html novo: gráficos, filtros, ordenação, prazos coloridos e
+    botões ⭐ (interessante) / ✕ (descartar), que ficam salvos no navegador.
+  - Telegram fácil: o script descobre o chat_id sozinho.
+  - Testes automáticos: python -m unittest test_monitor -v
+
+1) PRIMEIRA VEZ
+   Windows: dois cliques em rodar_monitor.bat
+   Linux/WSL: python3 monitor_licitacoes.py --abrir
+   A 1ª varredura é a mais demorada. As próximas são rápidas.
+
+2) DEIXAR AUTOMÁTICO (a cada 2h)
+   Windows: dois cliques em agendar_a_cada_2h.bat
+   Linux/WSL: bash agendar_linux.sh
+
+3) TELEGRAM NO CELULAR (5 minutos)
+   a) No Telegram, abra o @BotFather -> /newbot -> escolha um nome -> copie o TOKEN.
+   b) Cole o token no config.json, em "bot_token" (entre as aspas).
+   c) Abra o seu bot novo no Telegram e mande "oi".
+   d) Rode: configurar_telegram.bat   (ou: python3 monitor_licitacoes.py --descobrir-chat-id)
+      Ele salva o chat_id e manda uma mensagem de teste.
+   Pronto: a cada oportunidade nova chega um aviso com o link do edital.
+
+4) AJUSTES NO config.json
+   - palavras_chave / palavras_excluir: o que você quer e o que não quer.
+   - cidades: ex. ["Vitória", "Serra", "Vila Velha"]  |  [] = ES inteiro
+   - modalidades: 8 Dispensa, 6 Pregão eletrônico (cada uma a mais = mais requisições)
+   - valor_maximo: 300000 (0 = sem limite). Obs.: só limpa a lista; o PNCP não
+     filtra por valor, então isso não reduz requisições.
+   - varredura_completa_a_cada_dias: 7 (recomendado)
+
+COMANDOS ÚTEIS
+   python monitor_licitacoes.py --completa       força varredura completa
+   python monitor_licitacoes.py --so-dashboard   refaz o dashboard sem buscar
+   python monitor_licitacoes.py --testar-telegram
+
+ARQUIVOS GERADOS
+   dashboard.html            painel principal (abra no navegador)
+   oportunidades.csv         lista para Excel
+   banco_oportunidades.json  memória das oportunidades (não apague)
+   estado_execucao.json      data da última busca (apague para forçar completa)
+   monitor.log               histórico
+
+Fonte: API pública oficial do PNCP (pncp.gov.br/api/consulta).
